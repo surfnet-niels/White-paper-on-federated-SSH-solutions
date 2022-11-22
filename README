@@ -1,0 +1,18 @@
+The goal of this paper is to present and evaluate different ways in which federated identity – also known as web SSO – 
+could be leveraged for managing SSH access to resources. 
+
+DISCLAIMER
+This paper does not in any way endorce any of the solutions presented in the paper. Any brands or products mentioned in the paper belog to the respected owners.
+
+LICENSE
+This paper is licensed: Attribution 4.0 International (CC BY 4.0) - https://creativecommons.org/licenses/by/4.0/deed.en
+
+CONTRIBUTIONS
+The paper was initally created as part of the GÉANT Trust and Identity Incubator,which is part of the GÉANT 4.3 (GN4.3) project.  
+The project is co-funded by Europe's NRENs and the EU. As part of the GÉANT 2020 Framework Partnership Agreement (FPA), the GN4-3 and GN4-3N projects receive funding from the European Union's Horizon 2020 research and innovation programme under Grant Agreement No. 856726 (GN4-3) and Grant Agreement 856728 
+(GN4-3N).
+ 
+This whitepaper is the result of contribution and collaboration between many, including:
+* Niels van Dijk (SURF, GÉANT Project)
+* 
+
