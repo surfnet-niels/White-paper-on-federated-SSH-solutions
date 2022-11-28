@@ -1,6 +1,6 @@
 The goal of this paper is to present and evaluate different ways in which federated identity – as known on the web – could be leveraged for SSH access to resources.
 
-  
+
 
 Problem Description
 ===================
@@ -22,7 +22,7 @@ Federated SSO, on the other hand, scores well on the above criteria (User experi
 
 In this white paper we present different solutions that could be used to leverage the advantages of federated web SSO solutions for SSH access management.
 
-  
+
 
 Introduction into 'Web SSO'
 ===========================
@@ -36,13 +36,13 @@ Comparison chart
 
 Here we will compare the different solutions presented in the 2nd workshop demo to the requirements:
 
-\- How does the solution mitigate sharing of SSH keys?  
-\- What are the client requirements and supported platforms?  
-\- What are the SSH server requirements and does the solution require additional software beyond SSH server?  
-\- What requirements are put on the incoming identity?  
-\- How is provisioning (if required) towards the SSH server set up?  
-\- How does revocation work?  
-\- Does the setup allow for MFA?
+* How does the solution mitigate sharing of SSH keys?
+* What are the client requirements and supported platforms?
+* What are the SSH server requirements and does the solution require additional software beyond SSH server?
+* What requirements are put on the incoming identity?
+* How is provisioning (if required) towards the SSH server set up?
+* How does revocation work?
+* Does the setup allow for MFA?
 
 Solution descriptions
 =====================
@@ -82,9 +82,8 @@ So specifically the identity validation that is the basis for registering a SSH 
 
 Ssh servers that trust one or more ssh certificate authority's are then able to
 
-\- let users login based on their identity stated in their certificate, if they are already registered and maintained by other means
-
-\- Register new users and keep information on existing users updated based on both their identity and the additional information e.g. group membership from the certificate authority
+* let users login based on their identity stated in their certificate, if they are already registered and maintained by other means
+* Register new users and keep information on existing users updated based on both their identity and the additional information e.g. group membership from the certificate authority
 
 ### The Certificate Authority
 
@@ -117,14 +116,14 @@ In this simple case the principals must contain the username of the user.
 
 ### Sshd Configuration - user management on-the-fly
 
-  
+
 if the ssh server in addition to using the certificate as an identity token also wants to employ it for creating and maintaining users "on the fly" using the information in the certificate it can be done as follows:
 
 Add the following line to the sshd configuration:
-
-ExposeAuthInfo yes  
+```
+ExposeAuthInfo yes
 AllowUsers <name of special user>
-
+```
 This makes the ssh certificate used for authentication available to the user's shell - via an sshd provided environment variable - SSH\_USER\_AUTH - that contains the name of a file with the certificate.
 
 Then let the users login as a special user with rights to do user management and a special shell (the repository for the DeiC SSH CA contains one).
@@ -164,9 +163,35 @@ The principals system is used in very large deployments where where there is onl
 *   Any provisions for mitigating server TOFU
     *   Yes, use host certificates. This is possible independent of the solution for users.
 
-  
+PAM-weblogin
+------------
+[https://github.com/SURFscz/pam-weblogin](PAM-weblogin) is a PAM module written in C that enables a challenge-response login flow using SSHd keyboard-interactive login.
+The idea is to authenticate users based on the preprovisioned username and public key and then drop into PAM to check whether the user can perform a federative login on the challenge (unique URL) that is presented in the terminal. After clicking the URL, the user is expected to login (federatively) and on successful return a verification code is shown that needs to be supplied in the interactive session before continuing. If the code and login actor match the federative account based on a configurable claim, PAM exits with PAM_SUCCESS and the SSH login continues.
 
-Technical details - BETTER NAME NEEDED
+![image](https://user-images.githubusercontent.com/1901782/203533315-018d1ee2-245c-47e7-bc99-00ffa6bc39d6.png)
+
+### Smart Shell experiments
+[https://github.com/SURFscz/pam-weblogin/tree/main/shell](PAM-weblogin/shell) is an ongoing experiment to use a so-called Smart Shell to do the keyboard-interactive part of the login. A big advantage is that you are not confined to a strict C solution (it is implemented in python) and that the SSH requirement that the user must exist can be forgone. This opens up the path for a functional federative login account, which finally drops into the shell of the authenticated federative user, possible just right after the account has been provisioned.
+
+![image](https://user-images.githubusercontent.com/1901782/203533425-f4154b26-bbf1-4f59-ad17-b604d00fa079.png)
+
+* How does the solution mitigate sharing of SSH keys?
+  * A federative authentication is required to confirm the login. The PAM module can even be used without SSH key (as a single factor, not recommended).
+* What are the client requirements and supported platforms?
+  * The client is an unmodified ssh client.
+* What are the SSH server requirements and does the solution require additional software beyond SSH server?
+  * The module needs to be compiled on the server or a package can be created. The module itself consists of a single file that needs to be copied in place. Of course, necessary changes need to be made to SSHd and PAM configuration(s).
+* What requirements are put on the incoming identity?
+  * The identity needs to exist, but experiments are in place to replace the PAM module with a Smart Shell, which could do JIT provisioning of the user just before handing over the shell to the authenticated user.
+* How is provisioning (if required) towards the SSH server set up?
+  * Any form of (pre) provisioning will work. Specifically in SRAM, we use LDAP provisioning.
+* How does revocation work?
+  * The federative login will fail.
+* Does the setup allow for MFA?
+  * Yes, e.g. as a step-up requirement of the federative login flow.
+
+
+Appendix
 ======================================
 
 SSH Daemon and it's points of interception
@@ -178,31 +203,35 @@ However, a third way of authentication and authorization can be obtained from lo
 
 Below a schematic representation of the key material and where it resides/orginates from
 
-![](/download/attachments/530087973/image2022-9-29_14-51-49.png?version=1&modificationDate=1664455909778&api=v2)
 
 SSH Certificates
 ----------------
 
 Based their existing work, WAYF explains in this placeholder what's great about SSH certificates
 
+![image](https://user-images.githubusercontent.com/1901782/203533666-ae8fb14e-9ae5-42f1-ad6e-ec49e571bb06.png)
+
 PAM
 ---
 
-SSHd can be configured to leverage PAM authentication and support the PAM conversation functionality through KbdInteractiveAuthentication:  
-
+SSHd can be configured to leverage PAM authentication and support the PAM conversation functionality through KbdInteractiveAuthentication:
+```
 usePAM yes
+```
+Set this to 'yes' to enable PAM authentication, account processing, and session processing. If this is enabled, PAM authentication will be allowed through the KbdInteractiveAuthentication and PasswordAuthentication.
 
-Set this to 'yes' to enable PAM authentication, account processing, and session processing. If this is enabled, PAM authentication will be allowed through the KbdInteractiveAuthentication and PasswordAuthentication. Depending on your PAM configuration, PAM authentication via KbdInteractiveAuthentication may bypass the setting of "PermitRootLogin without-password". If you just want the PAM account and session checks to run without PAM authentication, then enable this but set PasswordAuthentication and KbdInteractiveAuthentication to 'no'.  
+Depending on your PAM configuration, PAM authentication via KbdInteractiveAuthentication may bypass the setting of "PermitRootLogin without-password". If you just want the PAM account and session checks to run without PAM authentication, then enable this but set PasswordAuthentication and KbdInteractiveAuthentication to 'no'.
+```
+KbdInteractiveAuthentication yes
+```
+[KbdInteractiveAuthentication](https://www.rfc-editor.org/rfc/rfc4256)
 
-KbdInteractiveAuthentication yes  
-
-Change to yes to enable challenge-response passwords (beware issues with some PAM modules and threads)  
+Change to yes to enable challenge-response passwords (beware issues with some PAM modules and threads)
 
 In the (sshd) PAM configuration, PAM module can be added and configured to be either _required_ or _sufficient_ or even more complex conditional access policies.
 
 Below is the flow diagram of the [pam-weblogin](https://github.com/SURFscz/pam-weblogin/) module that provides the requirement of loging in to a website that is printed on the challenge conversation during login:
 
-![](/download/attachments/530087973/image2022-9-29_14-14-14.png?version=1&modificationDate=1664453654412&api=v2)
 
 ### PAM Caveats
 
@@ -215,34 +244,27 @@ Instead of letting PAM do the heavy-lifting of the authorization process, we can
 
 To make the functional account weblogin recognise and accept public keys for all valid users of the service, the sshd options AuthorizedKeysCommand and accompanying AuthorizedKeysCommandUser can be used to point to an executable that generates a list of authorized keys, collected from a central store of keys like an MMS or LDAP directory.
 
-![](/download/attachments/530087973/image2022-11-3_13-23-38.png?version=1&modificationDate=1667478218341&api=v2)
-
 [https://github.com/SURFscz/pam-weblogin/tree/main/shell](https://github.com/SURFscz/pam-weblogin/tree/main/shell)
+```
+$ ssh weblogin@weblogin
+Linux weblogin 5.10.0-15-amd64 #1 SMP Debian 5.10.120-1 (2022-06-09) x86\_64
 
-$ ssh weblogin@weblogin  
-Linux weblogin 5.10.0-15-amd64 #1 SMP Debian 5.10.120-1 (2022-06-09) x86\_64  
-  
-The programs included with the Debian GNU/Linux system are free software;  
-the exact distribution terms for each program are described in the  
-individual files in /usr/share/doc/\*/copyright.  
-  
-Debian GNU/Linux comes with ABSOLUTELY NO WARRANTY, to the extent  
-permitted by applicable law.  
-Last login: Tue Oct 18 14:48:52 2022 from 192.168.56.1  
-Hello weblogin. To continue, visit [http://localhost:5001/pam-weblogin/login/k4vI3DOT](http://localhost:5001/pam-weblogin/login/k4vI3DOT) and enter verification code  
-code:  
-myshell@weblogin:~$ id  
-uid=1002(myshell) gid=1002(myshell) groups=1002(myshell)  
-myshell@weblogin:~$  
-logout  
+The programs included with the Debian GNU/Linux system are free software;
+the exact distribution terms for each program are described in the
+individual files in /usr/share/doc/\*/copyright.
+
+Debian GNU/Linux comes with ABSOLUTELY NO WARRANTY, to the extent
+permitted by applicable law.
+Last login: Tue Oct 18 14:48:52 2022 from 192.168.56.1
+Hello weblogin. To continue, visit [http://localhost:5001/pam-weblogin/login/k4vI3DOT](http://localhost:5001/pam-weblogin/login/k4vI3DOT) and enter verification code
+code:
+myshell@weblogin:~$ id
+uid=1002(myshell) gid=1002(myshell) groups=1002(myshell)
+myshell@weblogin:~$
+logout
 Connection to weblogin closed.
-
+```
 systemd
 -------
 
 Bits and pieces on how systemd can help resolving system users.
-
-nsswitch?
----------
-
-Nsswitch controls the back-ends that can be used to resolve valid user and groupnames which can be augmented with an LDAP based user/group back-end.
