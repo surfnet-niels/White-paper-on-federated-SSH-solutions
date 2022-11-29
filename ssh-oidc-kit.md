@@ -35,10 +35,9 @@ The individual tools used to compose the solution are:
 | Offline flow for user provision  |              | x          |       |            |  |         |                  |
 | Access Token > 1k                |              | x          | x     | x          |  |         |                  |
 | Obtain ATs                       |              |            |       | x          |  |         |                  |
-|----------------------------------|--------------|------------|-------|------------|--|---------|------------------|
 | Stop further authentications     |              |            |       |            |  | x       | x                |
 | Trigger deprovision / suspension |              | x          |       |            |  |         |                  |
-| Authorisation                    |              |            |       |            |  | x       | x                |
+| Authorisation                    |              | x           |       |            |  | x       | x                |
 
 
 
