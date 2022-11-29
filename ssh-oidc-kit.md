@@ -6,7 +6,10 @@ tools that provide enable ssh, using OpenID-Connect access tokens.
 Most of the individual tools work standalone, but they may be combined to
 establish complex installations with dynamic account provisioning in
 multi-OP and multi-VO contexts.
-None of the ssh-client or ssh-server components are modified.
+
+The tools share a few common design criteria:
+- None of the ssh-client or ssh-server components will be modified
+- 
 
 For demonstrating the current state of the approach, all tools have been
 combined into a demo installation at <https://ssh-oidc-demo.data.kit.edu>
@@ -24,6 +27,18 @@ The individual tools used to compose the solution are:
 - [mccli](https://mccli.readthedocs.io/en/latest): a client-side tool to simplify interaction with motley-cue and
     oidc-agent. Supports `ssh`, `scp`, and `sftp`
 - [oidc-agent](https://github.com/indigo-dc/oidc-agent): a client-side tool for obtaining OIDC access tokens
+
+|                                  | pam-ssh-oidc | motley-cue | mccli | oidc-agent |  | OIDC-OP | External VO mgmt |
+|----------------------------------|--------------|------------|-------|------------|--|---------|------------------|
+| Know your username               | x            |            |       |            |  |         |                  |
+| Provision users                  |              | x          | x     |            |  |         |                  |
+| Offline flow for user provision  |              | x          |       |            |  |         |                  |
+| Access Token > 1k                |              | x          | x     | x          |  |         |                  |
+| Obtain ATs                       |              |            |       | x          |  |         |                  |
+|----------------------------------|--------------|------------|-------|------------|--|---------|------------------|
+| Stop further authentications     |              |            |       |            |  | x       | x                |
+| Trigger deprovision / suspension |              | x          |       |            |  |         |                  |
+| Authorisation                    |              |            |       |            |  | x       | x                |
 
 
 
