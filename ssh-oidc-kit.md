@@ -50,13 +50,90 @@ The different tools and the points they address are shown in the table:
 | Stop further authentications     |              |            |       |            |  | x       | x                |
 | Trigger deprovision / suspension |              | x          |       |            |  |         |                  |
 | Authorisation                    |              | x          |       |            |  | x       | x                |
+| Delegation / token forwarding    |              |            | x     | x          |  |         |                  |
 
 
 ## Overall Architecture
 
+The architecture diagramme shows how all of the above tools may work
+together, if desired. The diagramme shows the `ssh-client`, the
+`ssh-server`, as well as the OIDC Provider.
+
+
 ![architecture](/images/ssh-oidc-kit-arch.png)
 
-As shown in the architecture diagrammekk
+## Login Flow
+
+The following steps take place when a user logs in to the ssh server:
+
+1. In this step the user has multiple options:
+    1. The `mccli` tool may use `oidc-agent` to obtain an access token
+       from the OIDC Provider (OP). Alternatively, the accesstoken can be
+       provided in an environment variable, e.g. `OIDC`.
+    1. The user may directly use any ssh-client. She will need to know the
+       username on the remote host, and will be queried for access token
+       instead of a password.
+1. When used, `mccli` contact the `motley-cue` daemon (on or nearby the
+   ssh server. It makes sure, that the user exists (if authorised), and
+   generated a one-time-password, in case the access token is too long for
+   the ssh client used (openssh has a limit of 1k).<br/> `motley-cue` will
+   update the users groups (based on entitlements) and/or create the user
+   if the account didn't exist already. (Pre-existing accounts will be
+   used whenever available, local-remote user mapping is stored in e.g.
+   `/etc/passwd` or similar, depending on the backend).
+1. The ssh-client perfoms a standard ssh authentication flow. As part of
+   this the access token is passed to `pam-ssh-oidc`, which either
+   verifies the token with the OIDC-Provider, or locally with
+   `motley-cue`.<br/>
+   If configured, other `pam` modules may be called within this login
+   process. This may include prompting for a `password`, or requesting a
+   `second factor`.
+1. On success the user is given the configured login shell.
+
+## Advanced Features
+
+In addition to the above flow, the following features are available.
+
+- *Dynamic user provisioning*: When using `motley-cue`, user-accounts may
+    be dynamically provisioned. Policies for user-nameing and
+    group-creation can be configured and are very flexible. Supported
+    backends include `local_unix`, `ldap`, and a rest interface to the KIT
+    `reg-app` system.
+- *Offline provisioning*: Some site policies (HPC in particular) require
+    the manual inspection of provisionig requests. This is supported by
+    informing administrators (e.g. by email) about a new-user registration
+    event. The user will then be able to login, after the admin approved
+    the request.
+- *Assurance*: Authorisation of user access can (in addition to
+    group membership or entitlements) be based on the assurance level of
+    an incoming user. `motley-cue` support for assurance is flexible
+    enough to support arbitrary assurance statements. Examples for the
+    REFEDS Assurance Framework are included.
+- *Agent forwarding*: Just as with `ssh-agent`, `oidc-agent`
+    supports remote sockets. When using `mccli`, the ssh-client is called
+    with the required parameters to forward a remote socket to the
+    client-host, so that fresh access tokens are available for processes
+    on the server side. When not using `mccli`, the required parameters
+    may easily be added to the ssh commandline.
+
+## Configuration
+
+The system is configured via the following configuration files.
+(`oidc-agent` is considered out of scope for this documentation.)
+
+### `/etc/pam.d/sshd`
+
+### `/etc/ssh/sshd_config`
+
+### `/etc/motley-cue/motley-cue.conf`
+
+### `/etc/motley-cue/feudal.conf`
+
+
+
+
+
+
 
 
 ### Discussion of Evaluation Criteria
