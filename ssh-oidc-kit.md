@@ -189,15 +189,35 @@ is self explanatory.
 
 ### Discussion of Evaluation Criteria
 
-* Does the solution mitigate sharing of SSH keys?
-* What are the client requirements and supported platforms?
-* What are the SSH server requirements and does the solution require additional software beyond SSH server?
-* Does the solution allow for non interactive client logins?
-* Does the solution allow for delegation?
-* What requirements are put on the incoming federated identity?
-* How is provisioning towards the SSH server set up?
-* How does revocation work?
-* Does the setup allow for MFA
-* Any provisions for mitigating server TOFU
+- Does the solution mitigate sharing of SSH keys?
+    - We replace the need for keys by using OIDC-Access tokens. SSH keys
+      may still be used, but are no longer necessary
+- What are the client requirements and supported platforms?
+    - Clients not require any installation. However, we suggest the
+      installation of `oidc-agent` and `mccli` (windows: our `putty
+      plugin`) for improved user experience. All packages are available
+      for most linux distributions, macOs and windows.
+- What are the SSH server requirements and does the solution require
+  additional software beyond SSH server?
+    - The server requires `pam-ssh-oidc`, and strongly benefits from
+      `motley-cue`. Packages exist for all major linux distributions in
+      `apt`, `yum`, or `zypper` repositories at
+      <https://repo.data.kit.edu>
+- Does the solution allow for non interactive client logins?
+    - Sure
+- Does the solution allow for delegation?
+    - Sure: You can use fresh access tokens on the remote host for further
+      ssh-oidc-logins, REST calls or other purposes.
+- What requirements are put on the incoming federated identity?
+    - Configurable. We suggest RAF `cappuccino` and membership in a VO.
+- How is provisioning towards the SSH server set up?
+    - `apt-get install motley-cue pam-ssh-oidc-autoconfig`
+- How does revocation work?
+    - Authorised personnel may use the `/admin` endpoint of `motley-cue`
+      which we expose on the server side
+- Does the setup allow for MFA
+    - Yes
+- Any provisions for mitigating server TOFU
+    - ???
 
 
