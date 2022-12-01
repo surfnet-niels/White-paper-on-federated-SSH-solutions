@@ -12,7 +12,6 @@ The tools share these common design criteria:
 - Do not store state whenever possible
     - Single exception: federated-user -> local-user mapping is stored in `passwd`
 - Small components that work individually (one tool for one job)
-- 
 
 For demonstrating the current state of the approach, all tools have been
 combined into a demo installation at <https://ssh-oidc-demo.data.kit.edu>
@@ -39,6 +38,7 @@ The individual tools used to compose the solution are:
 - [oidc-agent](https://github.com/indigo-dc/oidc-agent): a client-side
   tool for obtaining OIDC access tokens
 
+The different tools and the points they address are shown in the table:
 
 |                                  | pam-ssh-oidc | motley-cue | mccli | oidc-agent |  | OIDC-OP | External VO mgmt |
 |----------------------------------|--------------|------------|-------|------------|--|---------|------------------|
