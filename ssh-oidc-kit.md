@@ -52,6 +52,11 @@ The different tools and the points they address are shown in the table:
 | Authorisation                    |              | x          |       |            |  | x       | x                |
 
 
+## Overall Architecture
+
+![architecture](/images/ssh-oidc-kit-arch.png)
+
+As shown in the architecture diagrammekk
 
 
 ### Discussion of Evaluation Criteria
