@@ -51,6 +51,7 @@ Solution descriptions
 - [The KIT "OpenID Connect SSH" toolbox](ssh-oidc-kit.md)
 - [The SURF "PAM-weblogin](surf-pam-weblogin.md)
 - [The AWI Smartshell with krest](awi-smartshell.md)
+- [OAuth Authorization for SSH](https://github.com/XSEDE/oauth-ssh/)
 
 
 
