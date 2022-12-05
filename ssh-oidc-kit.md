@@ -1,7 +1,7 @@
 ssh-oidc
 --------
 [ssh-oidc](https://github.com/EOSC-synergy/ssh-oidc) is a collection of
-tools that provide enable ssh, using OpenID-Connect access tokens.
+tools that enable ssh using OpenID-Connect access tokens.
 
 Most of the individual tools work standalone, but they may be combined to
 establish complex installations with dynamic account provisioning in
@@ -19,7 +19,7 @@ combined into a demo installation at <https://ssh-oidc-demo.data.kit.edu>
 The individual tools used to compose the solution are:
 
 - pam-ssh-oidc: a PAM module developed by PSNC, that adds the "Access
-  Token" prompt to the list of supported authentications. this allows ssh
+  Token" prompt to the list of supported authentications. This allows ssh
   login, using a pre-created user, using the access token as a password.
 - [motley-cue](https://motley-cue.readthedocs.io/en/latest/) is a
   server-side tool which receives OIDC-tokens via REST-API, validates them
@@ -31,8 +31,8 @@ The individual tools used to compose the solution are:
     - one-time password support (for access tokens longer than 1024 byte)
     - user deprovisioning / suspension in case of security incident
 - [mccli](https://mccli.readthedocs.io/en/latest) is a wrapper for SSH
-  which performs the initial API call to transmit the token and then
-  connects via SSH. It is the client-side tool that simplifie the
+  which performs the initial API calls to transmit the token and then
+  connects via SSH. It is the client-side tool that simplifies the
   interaction with motley-cue and oidc-agent. It supports `ssh`, `scp`,
   and `sftp`
 - [oidc-agent](https://github.com/indigo-dc/oidc-agent): a client-side
@@ -68,20 +68,20 @@ The following steps take place when a user logs in to the ssh server:
 
 1. In this step the user has multiple options:
     1. The `mccli` tool may use `oidc-agent` to obtain an access token
-       from the OIDC Provider (OP). Alternatively, the accesstoken can be
+       from the OIDC Provider (OP). Alternatively, the access token can be
        provided in an environment variable, e.g. `OIDC`.
     1. The user may directly use any ssh-client. She will need to know the
        username on the remote host, and will be queried for access token
        instead of a password.
-1. When used, `mccli` contact the `motley-cue` daemon (on or nearby the
-   ssh server. It makes sure, that the user exists (if authorised), and
-   generated a one-time-password, in case the access token is too long for
+1. When used, `mccli` contacts the `motley-cue` daemon (on or nearby the
+   ssh server). It makes sure that the user exists (if authorised), and
+   generates a one-time-password, in case the access token is too long for
    the ssh client used (openssh has a limit of 1k).<br/> `motley-cue` will
-   update the users groups (based on entitlements) and/or create the user
+   update the user's groups (based on entitlements) and/or create the user
    if the account didn't exist already. (Pre-existing accounts will be
    used whenever available, local-remote user mapping is stored in e.g.
    `/etc/passwd` or similar, depending on the backend).
-1. The ssh-client perfoms a standard ssh authentication flow. As part of
+1. The ssh-client performs a standard ssh authentication flow. As part of
    this the access token is passed to `pam-ssh-oidc`, which either
    verifies the token with the OIDC-Provider, or locally with
    `motley-cue`.<br/>
@@ -95,12 +95,12 @@ The following steps take place when a user logs in to the ssh server:
 In addition to the above flow, the following features are available.
 
 - *Dynamic user provisioning*: When using `motley-cue`, user-accounts may
-    be dynamically provisioned. Policies for user-nameing and
+    be dynamically provisioned. Policies for user-naming and
     group-creation can be configured and are very flexible. Supported
-    backends include `local_unix`, `ldap`, and a rest interface to the KIT
+    backends include `local_unix`, `ldap`, and a REST interface to the KIT
     `reg-app` system.
 - *Offline provisioning*: Some site policies (HPC in particular) require
-    the manual inspection of provisionig requests. This is supported by
+    the manual inspection of provisioning requests. This is supported by
     informing administrators (e.g. by email) about a new-user registration
     event. The user will then be able to login, after the admin approved
     the request.
@@ -114,10 +114,10 @@ In addition to the above flow, the following features are available.
     with the required parameters to forward a remote socket to the
     client-host, so that fresh access tokens are available for processes
     on the server side. When not using `mccli`, the required parameters
-    may easily be added to the ssh commandline.
+    may easily be added to the ssh command line.
 - **Security Incident Support**: `motley-cue` supports an `admin` endpoint
     which allows authorised administrators (identified via OIDC
-    `sub`+`iss`) to suspend or resume user accounts. This is intented for
+    `sub`+`iss`) to suspend or resume user accounts. This is intended for
     enabling CERT staff to quickly mitigate security incidents.
 
 ## Installation
@@ -149,6 +149,16 @@ auth   sufficient pam_oidc_token.so config=/etc/pam.d/pam-ssh-oidc-config.ini
 This line is automatically added when using the `pam-ssh-oidc-autoconfig`
 package.
 
+The file `/etc/pam.d/pam-ssh-oidc-config.ini` configures how the PAM module verifies the token and username. For example, to delegate the verification to the local `motley-cue` daemon, the following configuration can be used:
+
+```config
+[user_verification]
+local = false
+verify_endpoint = http://localhost:8080/verify_user
+```
+
+This configuration is also automatically added when using the `pam-ssh-oidc-autoconfig` package.
+
 ### `/etc/ssh/sshd_config`
 
 SSHD should be configured to accept `KbdInteractiveAuthentication`
@@ -168,7 +178,7 @@ Here we configure several different aspects:
     - Which Virtual Organisations do we support
     - Which individual users do we support
 - The privacy statement to display
-- Auhorised security staff
+- Authorised security staff
 
 The default self-documenting configuration file is shipped with the
 `motley-cue` installation.
@@ -206,15 +216,20 @@ is self explanatory.
 - Does the solution allow for non interactive client logins?
     - Sure
 - Does the solution allow for delegation?
-    - Sure: You can use fresh access tokens on the remote host for further
-      ssh-oidc-logins, REST calls or other purposes.
+    - Sure: with oidc-agent forwarding, you can use fresh access tokens on the
+      remote host for further ssh-oidc-logins, REST calls or other purposes.
 - What requirements are put on the incoming federated identity?
     - Configurable. We suggest RAF `cappuccino` and membership in a VO.
 - How is provisioning towards the SSH server set up?
-    - `apt-get install motley-cue pam-ssh-oidc-autoconfig`
+    - user provisioning can be handled by `motley-cue` via `feudal`. Offline
+      provisioning (with admin approval) and dynamic provisioning (of authorised
+      users) are supported, with configurable user naming and group creation policies.
+    - implemented as an interface to any local account management system with a plugin
+      architecture; supported backends: `local_unix`, `ldap`, the KIT `reg-app` system.
 - How does revocation work?
     - Authorised personnel may use the `/admin` endpoint of `motley-cue`
       which we expose on the server side
+    - Individual tokens can also be revoked by the user
 - Does the setup allow for MFA
     - Yes
 - Any provisions for mitigating server TOFU
