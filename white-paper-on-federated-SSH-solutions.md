@@ -128,7 +128,19 @@ myshell@weblogin:~$
 logout
 Connection to weblogin closed.
 ```
+
 systemd
 -------
-
 Bits and pieces on how systemd can help resolving system users.
+
+SSH Multiplex using ControlPath
+-------------------------------
+By default when you have an existing connection to a remote server with ssh, a second connection using ssh or scp will establish a new session with the overhead of authentication. Using the ControlPath options we can have the existing session be used for all subsequent connections. This will enable non-interactive logins over a previously created interactive ControlPath.
+```
+Host remoteserver
+        HostName remoteserver.example.org
+        ControlMaster auto
+        ControlPath ~/.ssh/control/%r@%h:%p
+        ControlPersist 10m
+```
+ControlPath denotes a socket that is checked by new connections to see if there is an existing ssh session that can be used. The ControlPersist option above means even after you exit the terminal, the existing session will remain open for 10 minutes, so if you were to reconnect within that time you would use that existing socket.
