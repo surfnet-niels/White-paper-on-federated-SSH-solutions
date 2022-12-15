@@ -1,4 +1,4 @@
-The goal of this paper is to present and evaluate different ways in which federated identity – as known on the web – could be leveraged for SSH access to resources.
+The goal of this paper is to present and evaluate different ways in which federated identity – as known as webSSO – could be leveraged for SSH access to resources.
 
 
 
